@@ -1,4 +1,3 @@
--- Created Queries for league, Team, Product and using auto increment for Primary keys for each table 
 CREATE TABLE League(
     league_id INT AUTO_INCREMENT PRIMARY KEY, 
     league_name VARCHAR(50) NOT NULL,
@@ -7,7 +6,7 @@ CREATE TABLE League(
     league_sponsor VARCHAR(50), 
     league_tier INT NOT NULL
 );
-
+ 
 CREATE TABLE Team(
     team_id INT AUTO_INCREMENT PRIMARY KEY,
     team_name VARCHAR(100) NOT NULL,
@@ -21,13 +20,13 @@ CREATE TABLE Product(
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     prod_name VARCHAR(150) NOT NULL,
     prod_price DECIMAL(10,2) NOT NULL,
-    prod_brand VARCHAR(100)  NOT NULL,
+    prod_brand VARCHAR(100) NOT NULL,
     prod_season VARCHAR(20),
-    prod_type ENUM('Jersey','Footwear','Accessories') NOT NULL,
+    prod_type ENUM('Jersey','Footwear','Accessories','Equipment') NOT NULL,
     team_id INT NOT NULL,
     FOREIGN KEY (team_id) REFERENCES Team(team_id)
 );
-
+ 
 CREATE TABLE Jersey(
     PRIMARY KEY (product_id),
     jsy_size VARCHAR(10) NOT NULL,
@@ -36,7 +35,7 @@ CREATE TABLE Jersey(
     product_id INT NOT NULL,
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
-
+ 
 CREATE TABLE Footwear(
     product_id INT NOT NULL,
     foot_size VARCHAR(10) NOT NULL,
@@ -45,7 +44,7 @@ CREATE TABLE Footwear(
     PRIMARY KEY (product_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
-
+ 
 CREATE TABLE Accessories(
     product_id INT NOT NULL,
     accy_type VARCHAR(50) NOT NULL,
@@ -54,7 +53,7 @@ CREATE TABLE Accessories(
     PRIMARY KEY (product_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
-
+ 
 CREATE TABLE Inventory(
     invent_id INT AUTO_INCREMENT PRIMARY KEY,
     invent_quantity INT NOT NULL DEFAULT 0,
@@ -63,7 +62,7 @@ CREATE TABLE Inventory(
     product_id INT NOT NULL,
     FOREIGN KEY(product_id) REFERENCES Product(product_id)
 );
-
+ 
 CREATE TABLE Vendor(
     vend_id INT AUTO_INCREMENT PRIMARY KEY, 
     vend_name VARCHAR(100) NOT NULL,
@@ -72,7 +71,7 @@ CREATE TABLE Vendor(
     vend_country VARCHAR(100) NOT NULL, 
     vend_address VARCHAR(250) NOT NULL
 );
-
+ 
 CREATE TABLE Product_Vendor(
     prod_vend_id INT AUTO_INCREMENT PRIMARY KEY,
     prod_vend_price DECIMAL(10,2) NOT NULL,
@@ -82,24 +81,46 @@ CREATE TABLE Product_Vendor(
     FOREIGN KEY (vend_id) REFERENCES Vendor(vend_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
-
+ 
 CREATE TABLE Sales_Channel(
     channel_id INT AUTO_INCREMENT PRIMARY KEY,
     chl_name VARCHAR(100) NOT NULL,
     chl_region VARCHAR(100),
-    chl_status VARCHAR(20) NOT NULL DEFAULT 'Active',  --Default key active to keep the channel on unlsess specified to turn off 
+    chl_status VARCHAR(20) NOT NULL DEFAULT 'Active',  --Default key active to keep the channel on unless specified to turn off 
     chl_date DATE
 );
-
-CREATE TABLE Shipment(
-    shipment_id INT AUTO_INCREMENT PRIMARY KEY,
-    ship_address VARCHAR(250) NOT NULL,
-    ship_date DATE, 
-    ship_carrier VARCHAR(100),
-    ship_delivery_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
-    invoice_id INT NOT NULL,
-    FOREIGN KEY (invoice_id) REFERENCES Invoice(invoice_id)
+ 
+CREATE TABLE Customer(
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    cust_fname VARCHAR(100) NOT NULL,
+    cust_lname VARCHAR(100) NOT NULL,
+    cust_ph_num VARCHAR(30),
+    cust_address VARCHAR(250) NOT NULL, 
+    cust_email VARCHAR(100) NOT NULL
 );
+ 
+
+CREATE TABLE Payment(
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    pymt_method VARCHAR(30) NOT NULL,
+    pymt_date DATETIME NOT NULL,
+    pymt_status VARCHAR(50) NOT NULL DEFAULT 'Pending',  --Payment remain pending until processed 
+    pymt_trans_ref VARCHAR(100) NOT NULL,
+    pymt_amt DECIMAL(10,2) NOT NULL
+);
+ 
+-- Why would it be channel id as a FK? Shouldn't it be payment_id? 
+-- To create an invoice you need customer details and payment information. 
+CREATE TABLE Invoice(
+    invoice_id INT AUTO_INCREMENT PRIMARY KEY,
+    inv_date DATETIME,
+    inv_status VARCHAR(50) NOT NULL,
+    customer_id INT NOT NULL,
+    payment_id INT NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (payment_id) REFERENCES Payment(payment_id)
+);
+ 
 
 CREATE TABLE Invoice_item(
     invoice_item_id INT AUTO_INCREMENT PRIMARY KEY, 
@@ -110,39 +131,17 @@ CREATE TABLE Invoice_item(
     FOREIGN KEY(invoice_id) REFERENCES Invoice(invoice_id),
     FOREIGN KEY(product_id) REFERENCES Product(product_id)
 );
+ 
 
-CREATE TABLE Invoice(
-    invoice_id INT AUTO_INCREMENT PRIMARY KEY,
-    inv_date DATE,
-    inv_status VARCHAR(50) NOT NULL,
-    customer_id INT NOT NULL,
-    --Why would it be channel id as a FK? Shouldn't it be payment_id? 
-    --To create an invoice you need customer details and payment information. 
-    payment_id INT NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
-    FOREIGN KEY (payment_id) REFERENCES Payment(payment_id)
-);
-
-CREATE TABLE Customer(
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    cust_fname VARCHAR(100) NOT NULL,
-    cust_lname VARCHAR(100) NOT NULL,
-    cust_ph_num VARCHAR(30),
-    cust_address VARCHAR(250) NOT NULL, 
-    cust_email VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE Payment(
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    pymt_method VARCHAR(30) NOT NULL,
-    pymt_date DATE NOT NULL,
-    pymt_status VARCHAR(50) NOT NULL DEFAULT 'Pending',  --Payment remain pending until processed 
-    pymt_trans_ref VARCHAR(100) NOT NULL,
-    pymt_amt DECIMAL(10,2) NOT NULL,
+CREATE TABLE Shipment(
+    shipment_id INT AUTO_INCREMENT PRIMARY KEY,
+    ship_address VARCHAR(250) NOT NULL,
+    ship_date DATE, 
+    ship_carrier VARCHAR(100),
+    ship_delivery_status VARCHAR(50) NOT NULL DEFAULT 'Pending',
     invoice_id INT NOT NULL,
-    FOREIGN KEY(invoice_id) REFERENCES Invoice(invoice_id)
+    FOREIGN KEY (invoice_id) REFERENCES Invoice(invoice_id)
 );
-
 --6 main leagues Only put MLS IDK why 
 INSERT INTO League(league_name,league_country,league_year,league_sponsor,league_tier) VALUES
 ('Premier League','England',2024,'Barclays',1),
@@ -344,7 +343,7 @@ INSERT INTO Inventory(product_id,prod_quantity,prod_update_date,prod_location) V
 (20,198,'2024-08-01','Warehouse D - Shelf 5');
 
 --20 real world data into product vendor 
-INSERT INTO Product_Vendor(vendor_id,product_id,prod_vend_price,prod_vend_date) VALUES
+INSERT INTO Product_Vendor(vend_id,product_id,prod_vend_price,prod_vend_date) VALUES
 (2,1,54.0,'2024-07-01'),
 (1,2,51.0,'2024-07-01'),
 (1,3,54.0,'2024-07-01'),
@@ -3473,506 +3472,506 @@ INSERT INTO Inventory (product_id, prod_quantity, prod_update_date, prod_locatio
 
 
 --500 fake product vendor 
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 21, 116.48, '2023-11-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 21, 139.2, '2022-01-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 22, 142.3, '2022-07-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 23, 114.53, '2024-04-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 23, 21.02, '2024-07-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 24, 56.07, '2023-01-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 25, 136.43, '2023-08-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 25, 47.81, '2023-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 26, 22.97, '2024-02-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 27, 146.0, '2024-02-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 27, 90.02, '2024-05-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 28, 103.83, '2022-09-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 28, 145.72, '2024-06-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 29, 81.47, '2023-03-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 29, 16.32, '2022-01-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 30, 133.33, '2023-01-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 30, 74.87, '2022-01-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 31, 73.11, '2023-01-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 32, 133.78, '2024-07-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 33, 96.12, '2022-09-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 33, 73.82, '2023-12-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 34, 118.02, '2023-08-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 34, 75.3, '2024-02-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 35, 96.78, '2024-08-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 36, 147.4, '2022-10-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 36, 20.48, '2022-12-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 37, 148.19, '2023-01-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 37, 83.4, '2022-11-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 38, 90.94, '2024-05-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 39, 33.44, '2024-08-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 40, 136.99, '2024-03-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 41, 18.62, '2022-03-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 41, 66.24, '2022-06-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 42, 25.66, '2022-11-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 42, 24.15, '2022-01-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 43, 33.79, '2022-08-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 44, 99.75, '2022-08-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 44, 122.15, '2022-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 45, 83.21, '2023-11-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 45, 88.21, '2023-04-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 46, 83.39, '2023-08-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 47, 144.33, '2023-02-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 48, 123.14, '2024-03-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 48, 114.76, '2023-10-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 49, 149.12, '2022-07-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 49, 93.43, '2024-05-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 50, 47.87, '2022-10-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 50, 101.37, '2024-05-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 51, 114.95, '2022-02-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 51, 147.4, '2022-09-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 52, 127.68, '2022-12-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 52, 77.41, '2023-09-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 53, 125.81, '2022-07-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 54, 58.75, '2023-09-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 54, 22.68, '2022-01-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 55, 101.4, '2024-07-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 56, 10.22, '2022-04-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 57, 91.16, '2022-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 57, 78.84, '2023-08-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 58, 59.24, '2023-07-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 59, 25.18, '2024-05-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 60, 81.39, '2024-02-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 61, 5.39, '2024-09-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 62, 98.01, '2024-05-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 63, 101.02, '2022-06-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 64, 97.41, '2024-04-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 65, 7.85, '2024-07-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 66, 31.33, '2024-06-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 67, 29.46, '2024-05-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 68, 56.35, '2024-03-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 69, 73.43, '2022-02-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 69, 80.36, '2023-03-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 70, 142.39, '2023-12-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 71, 33.73, '2022-01-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 72, 127.41, '2024-06-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 72, 9.63, '2024-02-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 73, 107.63, '2022-09-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 74, 64.79, '2023-03-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 75, 36.59, '2023-07-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 76, 6.39, '2023-05-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 76, 100.48, '2022-09-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 77, 93.89, '2022-02-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 77, 120.34, '2023-02-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 78, 75.97, '2022-10-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 79, 121.57, '2022-10-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 80, 110.07, '2024-03-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 80, 60.35, '2022-07-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 81, 18.26, '2024-05-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 82, 38.91, '2024-02-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 82, 42.45, '2024-04-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 83, 71.42, '2022-03-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 84, 134.87, '2022-12-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 85, 54.18, '2023-01-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 85, 29.19, '2022-02-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 86, 141.21, '2023-06-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 86, 10.57, '2023-03-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 87, 99.92, '2023-10-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 87, 126.94, '2024-02-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 88, 30.46, '2022-09-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 88, 34.78, '2023-02-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 89, 92.82, '2022-09-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 90, 73.74, '2022-09-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 91, 133.48, '2024-04-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 91, 70.26, '2022-07-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 92, 66.65, '2024-08-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 93, 104.38, '2022-07-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 94, 83.57, '2022-03-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 94, 125.41, '2024-08-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 95, 88.95, '2024-06-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 96, 108.68, '2024-06-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 96, 133.48, '2024-07-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 97, 70.44, '2024-09-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 97, 134.27, '2023-06-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 98, 96.87, '2022-12-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 99, 42.74, '2022-08-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 99, 73.96, '2022-06-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 100, 73.25, '2024-02-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 100, 144.64, '2022-09-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 101, 78.83, '2022-01-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 102, 69.98, '2024-02-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 103, 144.13, '2023-05-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 103, 58.5, '2023-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 104, 121.26, '2024-09-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 104, 114.34, '2023-03-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 105, 149.31, '2024-08-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 105, 51.64, '2023-06-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 106, 56.97, '2022-03-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 106, 141.18, '2022-03-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 107, 112.74, '2023-03-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 108, 93.68, '2022-02-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 108, 98.59, '2023-11-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 109, 125.72, '2024-05-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 109, 132.73, '2022-05-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 110, 141.05, '2022-03-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 111, 109.49, '2024-07-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 112, 28.9, '2023-11-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 113, 130.2, '2024-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 114, 119.37, '2022-12-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 115, 137.25, '2023-04-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 115, 146.25, '2022-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 116, 146.26, '2023-11-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 116, 123.08, '2024-03-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 117, 134.96, '2023-12-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 117, 136.37, '2023-03-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 118, 47.69, '2023-10-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 118, 147.96, '2022-09-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 119, 117.72, '2022-02-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 120, 136.14, '2022-09-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 121, 119.93, '2023-02-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 121, 6.04, '2022-05-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 122, 123.33, '2023-12-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 123, 37.33, '2022-04-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 124, 65.05, '2022-07-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 125, 127.12, '2023-02-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 126, 116.57, '2022-12-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 126, 14.02, '2023-11-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 127, 136.74, '2024-03-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 127, 57.24, '2022-09-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 128, 74.63, '2022-01-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 128, 64.03, '2022-01-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 129, 44.34, '2023-04-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 130, 61.27, '2022-05-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 130, 17.02, '2023-10-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 131, 16.41, '2022-07-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 132, 107.54, '2023-05-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 133, 11.23, '2024-01-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 133, 39.06, '2023-08-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 134, 48.17, '2022-06-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 135, 108.8, '2023-02-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 136, 40.56, '2022-07-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 136, 128.59, '2023-06-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 137, 64.9, '2023-10-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 138, 24.21, '2022-03-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 139, 99.23, '2024-04-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 139, 79.94, '2024-09-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 140, 127.36, '2024-08-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 140, 138.3, '2024-05-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 141, 84.11, '2023-08-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 142, 12.25, '2023-10-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 142, 120.31, '2023-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 143, 21.0, '2022-08-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 143, 30.76, '2022-09-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 144, 110.76, '2022-05-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 144, 117.63, '2024-01-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 145, 43.53, '2022-03-31');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 146, 37.65, '2023-08-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 146, 139.47, '2023-12-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 147, 130.51, '2023-09-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 148, 12.13, '2023-11-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 148, 115.29, '2022-08-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 149, 30.66, '2022-06-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 149, 108.69, '2022-02-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 150, 73.57, '2023-08-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 150, 50.51, '2023-12-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 151, 38.63, '2022-12-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 152, 90.44, '2023-11-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 152, 32.94, '2022-06-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 153, 129.36, '2022-04-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 154, 82.8, '2023-08-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 154, 27.73, '2023-05-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 155, 93.27, '2022-07-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 155, 32.68, '2022-05-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 156, 127.48, '2023-02-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 156, 111.91, '2023-07-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 157, 11.99, '2023-06-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 157, 101.34, '2022-01-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 158, 73.64, '2022-08-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 159, 56.77, '2023-04-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 159, 104.77, '2022-07-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 160, 35.2, '2023-07-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 161, 58.09, '2023-02-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 162, 22.02, '2023-02-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 162, 141.85, '2023-12-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 163, 117.16, '2024-09-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 164, 51.46, '2023-10-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 165, 141.9, '2022-03-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 165, 100.8, '2023-01-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 166, 90.67, '2024-09-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 166, 95.88, '2024-07-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 167, 126.19, '2022-02-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 168, 26.34, '2024-09-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 168, 14.41, '2023-04-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 169, 146.67, '2024-08-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 170, 108.71, '2023-12-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 170, 19.03, '2022-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 171, 63.49, '2023-10-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 172, 65.68, '2024-05-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 172, 87.47, '2024-06-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 173, 111.26, '2024-01-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 174, 83.5, '2022-05-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 175, 10.05, '2022-11-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 176, 96.62, '2022-06-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 176, 11.71, '2023-09-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 177, 87.08, '2023-03-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 177, 81.22, '2023-04-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 178, 35.64, '2023-08-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 179, 110.1, '2023-06-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 179, 67.8, '2024-09-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 180, 73.99, '2023-12-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 181, 27.96, '2022-11-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 182, 134.2, '2022-03-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 182, 46.79, '2022-07-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 183, 122.65, '2023-07-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 184, 81.65, '2022-04-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 184, 38.75, '2023-08-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 185, 23.46, '2023-10-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 186, 125.84, '2022-09-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 186, 7.03, '2024-09-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 187, 8.12, '2024-03-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 187, 134.37, '2024-09-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 188, 117.03, '2023-03-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 189, 90.21, '2024-08-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 189, 11.82, '2022-04-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 190, 91.04, '2023-06-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 190, 108.61, '2022-09-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 191, 136.1, '2022-11-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 191, 11.96, '2023-05-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 192, 51.38, '2024-02-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 192, 70.32, '2023-12-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 193, 44.5, '2024-01-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 194, 115.39, '2024-07-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 195, 20.88, '2022-07-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 196, 79.06, '2022-06-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 197, 54.85, '2023-07-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 197, 126.89, '2022-01-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 198, 142.76, '2024-01-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 198, 145.16, '2024-08-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 199, 53.23, '2023-04-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 200, 18.97, '2022-04-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 200, 25.09, '2023-01-31');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 201, 134.36, '2023-08-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 201, 56.15, '2023-10-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 202, 102.6, '2023-07-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 203, 17.79, '2024-02-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 203, 121.67, '2022-10-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 204, 31.62, '2023-03-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 204, 61.96, '2023-07-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 205, 73.06, '2023-12-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 205, 145.46, '2023-06-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 206, 19.05, '2023-01-31');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 207, 95.7, '2022-11-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 207, 39.08, '2023-06-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 208, 118.21, '2023-02-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 208, 109.48, '2022-02-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 209, 19.46, '2023-11-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 209, 140.73, '2023-02-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 210, 19.76, '2024-04-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 211, 62.79, '2023-08-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 212, 47.7, '2022-10-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 212, 39.27, '2024-03-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 213, 5.53, '2023-07-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 214, 35.03, '2023-12-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 215, 48.44, '2022-04-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 216, 64.77, '2022-05-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 216, 111.46, '2023-06-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 217, 73.75, '2024-02-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 217, 61.6, '2024-02-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 218, 42.64, '2023-11-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 218, 85.93, '2022-09-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 219, 110.35, '2022-05-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 220, 95.9, '2022-07-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 221, 95.7, '2023-03-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 221, 90.64, '2022-07-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 222, 41.89, '2023-10-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 223, 45.58, '2022-04-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 224, 7.08, '2024-02-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 224, 123.33, '2023-03-31');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 225, 136.25, '2023-05-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 225, 88.13, '2022-11-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 226, 73.22, '2023-05-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 227, 117.2, '2023-06-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 228, 114.7, '2024-03-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 228, 92.96, '2024-03-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 229, 58.7, '2024-03-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 229, 14.05, '2024-09-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 230, 76.33, '2023-05-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 230, 133.8, '2023-11-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 231, 29.94, '2023-04-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 232, 28.4, '2023-10-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 232, 104.88, '2022-03-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 233, 57.43, '2022-11-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 233, 43.0, '2023-12-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 234, 50.48, '2022-04-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 234, 69.68, '2024-07-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 235, 40.28, '2022-04-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 235, 5.64, '2022-01-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 236, 143.16, '2024-03-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 237, 121.07, '2022-07-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 237, 86.42, '2022-11-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 238, 41.63, '2022-03-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 239, 98.17, '2024-03-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 240, 52.13, '2022-06-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 240, 96.62, '2023-12-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 241, 92.46, '2023-10-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 241, 26.52, '2022-06-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 242, 114.31, '2022-10-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 242, 101.95, '2023-11-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 243, 53.87, '2023-05-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 244, 54.32, '2023-11-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 244, 111.76, '2022-08-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 245, 70.6, '2023-11-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 246, 54.55, '2023-02-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 246, 66.53, '2022-03-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 247, 79.47, '2024-08-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 247, 14.05, '2023-08-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 248, 93.27, '2022-09-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 248, 125.27, '2024-08-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 249, 71.37, '2023-11-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 250, 102.74, '2023-12-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 250, 114.55, '2022-12-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 251, 144.15, '2024-01-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 252, 24.91, '2023-01-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 252, 15.81, '2023-01-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 253, 147.07, '2024-05-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 254, 126.33, '2023-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 255, 79.23, '2022-04-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 256, 96.92, '2023-11-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 256, 66.17, '2024-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 257, 122.94, '2022-06-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 257, 118.4, '2023-10-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 258, 93.15, '2023-10-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 258, 49.12, '2023-08-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 259, 126.29, '2024-07-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 260, 113.42, '2022-09-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 261, 51.49, '2024-03-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 262, 121.6, '2024-06-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 262, 99.67, '2023-02-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 263, 30.62, '2023-10-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 263, 43.12, '2023-12-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 264, 110.79, '2024-08-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 264, 13.47, '2022-11-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 265, 115.24, '2024-01-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 266, 44.2, '2022-12-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 267, 17.06, '2024-01-31');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 268, 130.28, '2024-01-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 268, 47.24, '2023-02-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 269, 114.55, '2022-04-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 270, 52.37, '2023-10-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 271, 89.35, '2022-04-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 271, 51.9, '2022-12-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 272, 60.43, '2023-10-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 273, 131.17, '2023-02-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 274, 145.21, '2023-11-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 274, 120.42, '2022-10-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 275, 87.98, '2024-06-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 275, 138.47, '2022-05-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 276, 11.21, '2023-07-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 277, 144.45, '2022-01-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 277, 77.1, '2022-11-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 278, 47.5, '2022-09-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 278, 137.32, '2023-07-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 279, 58.81, '2022-02-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 280, 101.74, '2022-03-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 280, 68.07, '2024-02-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 281, 134.57, '2023-09-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 281, 147.87, '2023-12-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 282, 73.99, '2023-05-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 282, 100.95, '2023-08-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 283, 64.66, '2022-08-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 284, 145.58, '2022-08-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 285, 116.3, '2022-09-13');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 285, 68.79, '2022-07-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 286, 74.65, '2024-08-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 286, 36.54, '2022-02-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 287, 40.92, '2022-12-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 288, 22.43, '2022-12-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 289, 143.16, '2024-02-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 289, 116.92, '2022-05-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 290, 39.53, '2022-02-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 290, 97.37, '2023-03-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 291, 135.89, '2024-04-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 291, 16.91, '2022-11-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 292, 101.77, '2024-07-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 293, 145.44, '2022-05-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 293, 34.38, '2023-08-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 294, 25.49, '2023-09-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 295, 75.25, '2024-05-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 296, 97.54, '2023-05-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 297, 33.28, '2023-01-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 297, 77.4, '2022-09-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 298, 109.67, '2023-05-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 299, 41.51, '2022-05-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 300, 146.09, '2023-10-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 300, 25.46, '2024-07-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 301, 40.87, '2022-10-27');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 301, 52.35, '2024-08-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 302, 73.86, '2022-07-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 302, 34.1, '2022-02-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 303, 62.99, '2022-04-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 304, 86.59, '2023-11-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 304, 58.97, '2023-03-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 305, 98.05, '2024-01-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 306, 78.07, '2022-03-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 307, 5.85, '2023-10-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 307, 25.43, '2024-02-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 308, 139.96, '2023-06-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 308, 87.52, '2022-11-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 309, 14.99, '2023-05-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 309, 129.38, '2022-03-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 310, 51.34, '2023-12-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 310, 135.64, '2023-11-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 311, 63.64, '2023-03-02');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 312, 37.79, '2024-03-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 312, 24.34, '2022-07-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 313, 60.77, '2023-04-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 313, 123.11, '2024-07-15');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 314, 136.68, '2024-09-09');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 314, 73.13, '2024-06-08');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 315, 80.91, '2023-04-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 315, 129.99, '2023-08-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 316, 65.31, '2024-06-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 317, 21.59, '2023-06-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 318, 121.27, '2022-02-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 318, 67.13, '2024-01-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 319, 95.4, '2024-07-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 320, 88.29, '2023-07-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 321, 5.8, '2022-02-01');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 321, 52.58, '2024-09-11');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 322, 138.84, '2024-08-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 323, 64.21, '2023-07-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 323, 66.66, '2022-07-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 324, 108.35, '2024-05-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 324, 8.12, '2024-05-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 325, 18.05, '2023-08-19');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 325, 84.08, '2023-04-20');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 326, 123.89, '2022-04-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 326, 22.1, '2022-11-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 327, 26.65, '2024-06-05');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 327, 128.56, '2024-02-29');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 328, 125.81, '2022-09-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 329, 10.92, '2022-10-24');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 330, 46.13, '2022-11-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 330, 25.48, '2024-07-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 331, 145.86, '2022-10-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 332, 94.58, '2023-06-23');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 333, 45.1, '2022-01-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 333, 102.72, '2024-04-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 334, 25.12, '2022-02-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 334, 82.14, '2023-02-10');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 335, 146.7, '2023-07-22');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 336, 11.5, '2023-07-03');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 337, 121.95, '2022-02-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 337, 103.38, '2023-08-06');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 338, 37.11, '2022-12-12');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 338, 73.53, '2023-07-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 339, 112.62, '2023-11-17');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 340, 45.86, '2023-07-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 341, 17.11, '2023-03-04');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 341, 122.82, '2024-09-26');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 342, 8.13, '2023-11-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 342, 92.77, '2023-11-21');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 343, 143.26, '2024-05-07');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 344, 75.2, '2022-10-18');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 345, 30.25, '2024-05-25');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 346, 133.76, '2024-04-30');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 347, 83.07, '2022-04-14');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 347, 113.5, '2023-11-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 348, 6.87, '2023-09-28');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 348, 70.54, '2023-03-16');
-INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 349, 55.81, '2023-03-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 21, 12.66, '2024-03-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 21, 6.27, '2023-05-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 22, 22.16, '2024-05-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 22, 29.7, '2022-01-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 23, 56.45, '2023-10-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 23, 115.0, '2022-02-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 24, 12.07, '2023-12-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 24, 114.72, '2022-05-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 25, 136.84, '2022-08-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 26, 113.54, '2022-09-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 27, 108.12, '2023-03-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 27, 23.03, '2022-05-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 28, 80.48, '2024-02-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 28, 44.8, '2022-07-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 29, 114.98, '2022-08-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 30, 6.74, '2022-03-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 30, 119.41, '2022-03-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 31, 78.84, '2023-05-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 31, 26.66, '2023-09-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 32, 62.54, '2022-10-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 33, 102.68, '2022-11-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 34, 98.99, '2024-02-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 34, 73.17, '2022-06-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 35, 78.97, '2022-07-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 35, 124.15, '2023-08-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 36, 77.63, '2022-12-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 37, 32.61, '2022-09-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 37, 123.44, '2023-05-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 38, 8.38, '2023-07-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 39, 112.67, '2022-12-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 40, 101.14, '2022-06-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 41, 138.93, '2022-06-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 42, 23.87, '2022-01-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 42, 102.64, '2023-09-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 43, 77.87, '2022-07-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 44, 96.64, '2024-02-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 44, 77.93, '2022-12-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 45, 100.63, '2024-03-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 46, 100.78, '2022-12-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 46, 43.62, '2024-01-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 47, 124.78, '2024-01-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 47, 54.44, '2024-05-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 48, 126.24, '2024-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 48, 82.84, '2023-07-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 49, 127.68, '2023-07-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 50, 93.54, '2022-10-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 50, 114.27, '2023-06-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 51, 23.01, '2022-03-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 51, 82.02, '2022-09-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 52, 30.86, '2024-07-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 52, 111.81, '2023-11-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 53, 144.16, '2023-12-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 54, 61.64, '2022-01-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 55, 77.68, '2022-04-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 56, 14.98, '2022-11-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 57, 25.17, '2022-03-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 58, 16.92, '2022-08-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 58, 32.35, '2022-04-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 59, 116.12, '2022-10-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 59, 118.18, '2023-07-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 60, 66.17, '2024-03-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 60, 6.56, '2022-09-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 61, 136.12, '2022-04-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 61, 60.04, '2023-02-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 62, 147.39, '2024-07-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 62, 58.84, '2022-07-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 63, 71.16, '2024-02-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 63, 20.58, '2022-06-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 64, 44.41, '2023-01-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 65, 25.29, '2022-06-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 66, 132.9, '2022-10-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 66, 32.13, '2022-01-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 67, 6.76, '2023-12-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 67, 25.18, '2022-09-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 68, 26.71, '2024-05-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 69, 114.85, '2022-03-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 70, 42.81, '2024-02-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 70, 103.54, '2024-07-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 71, 110.13, '2024-04-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 71, 41.4, '2023-07-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 72, 108.06, '2023-07-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 72, 124.93, '2023-09-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 73, 119.76, '2023-10-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 74, 137.76, '2024-09-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 75, 124.81, '2024-02-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 75, 10.92, '2022-05-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 76, 114.76, '2024-01-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 77, 9.28, '2024-04-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 78, 128.12, '2024-02-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 78, 64.76, '2024-08-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 79, 99.14, '2024-06-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 80, 29.5, '2023-10-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 81, 58.7, '2024-07-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 82, 5.05, '2023-06-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 83, 81.6, '2024-06-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 83, 51.21, '2022-09-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 84, 33.93, '2024-05-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 84, 13.1, '2023-07-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 85, 111.77, '2024-06-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 85, 93.95, '2024-04-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 86, 30.87, '2022-03-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 87, 99.35, '2022-09-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 87, 38.54, '2024-07-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 88, 54.53, '2023-01-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 89, 76.91, '2024-03-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 89, 87.1, '2022-09-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 90, 111.66, '2023-11-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 90, 40.85, '2022-07-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 91, 24.54, '2023-05-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 92, 66.12, '2022-11-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 92, 128.38, '2022-07-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 93, 71.97, '2022-02-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 93, 66.58, '2022-09-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 94, 55.26, '2022-05-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 94, 79.5, '2024-04-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 95, 145.15, '2023-04-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 96, 146.28, '2024-05-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 96, 122.3, '2022-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 97, 126.84, '2023-09-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 98, 31.09, '2023-10-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 99, 20.16, '2023-05-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 99, 148.16, '2022-02-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 100, 68.82, '2023-02-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 101, 140.82, '2022-10-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 101, 49.22, '2022-10-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 102, 142.17, '2024-04-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 103, 54.28, '2023-05-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 104, 23.3, '2024-01-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 104, 38.23, '2023-02-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 105, 120.77, '2024-03-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 105, 6.45, '2022-12-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 106, 14.19, '2023-03-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 107, 134.67, '2023-11-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 108, 36.28, '2022-12-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 109, 8.24, '2022-06-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 109, 5.21, '2022-01-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 110, 119.34, '2024-09-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 110, 145.24, '2023-09-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 111, 132.98, '2023-09-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 111, 44.67, '2024-07-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 112, 92.69, '2024-08-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 112, 147.34, '2022-12-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 113, 71.73, '2022-12-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 114, 136.07, '2022-09-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 114, 21.66, '2023-10-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 115, 13.02, '2024-01-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 115, 139.97, '2024-01-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 116, 149.8, '2024-01-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 116, 113.1, '2023-12-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 117, 122.62, '2023-01-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 117, 66.09, '2023-07-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 118, 125.34, '2022-04-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 118, 96.87, '2023-03-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 119, 149.99, '2023-08-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 119, 100.49, '2022-12-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 120, 117.61, '2023-04-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 121, 70.16, '2023-05-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 122, 131.7, '2022-05-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 122, 22.25, '2022-02-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 123, 142.06, '2023-07-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 124, 111.37, '2022-02-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 125, 149.0, '2023-04-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 126, 77.67, '2023-10-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 127, 95.42, '2022-07-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 127, 45.16, '2022-12-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 128, 106.89, '2023-07-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 129, 147.57, '2022-09-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 129, 16.52, '2022-07-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 130, 71.8, '2022-10-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 131, 99.74, '2024-08-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 132, 9.51, '2023-06-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 132, 74.98, '2022-02-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 133, 75.53, '2023-08-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 134, 26.36, '2023-08-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 135, 131.36, '2024-09-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 135, 137.27, '2022-10-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 136, 120.65, '2022-07-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 137, 43.03, '2022-08-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 138, 131.57, '2024-09-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 138, 43.8, '2022-12-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 139, 30.59, '2022-12-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 140, 77.05, '2023-11-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 141, 12.32, '2024-02-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 142, 44.73, '2022-11-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 142, 149.16, '2024-03-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 143, 36.14, '2022-03-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 143, 108.31, '2023-09-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 144, 117.57, '2024-07-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 144, 55.06, '2023-11-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 145, 106.02, '2023-10-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 145, 9.16, '2023-08-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 146, 80.42, '2023-10-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 147, 119.18, '2022-01-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 147, 118.68, '2023-09-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 148, 20.92, '2023-10-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 149, 117.34, '2024-01-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 150, 144.59, '2022-08-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 150, 17.77, '2024-05-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 151, 32.14, '2022-04-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 151, 74.63, '2022-06-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 152, 138.26, '2023-02-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 153, 112.57, '2022-03-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 153, 43.29, '2023-09-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 154, 50.43, '2024-05-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 155, 76.04, '2022-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 155, 19.73, '2022-11-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 156, 96.8, '2022-11-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 157, 107.08, '2022-07-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 157, 112.97, '2022-06-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 158, 55.84, '2024-06-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 159, 9.47, '2022-06-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 159, 126.27, '2022-06-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 160, 99.43, '2023-03-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 160, 106.44, '2023-11-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 161, 122.06, '2022-12-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 161, 26.82, '2022-02-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 162, 82.67, '2022-08-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 162, 76.64, '2024-06-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 163, 93.49, '2023-05-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 163, 12.73, '2023-08-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 164, 145.37, '2022-11-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 164, 135.89, '2022-02-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 165, 103.4, '2022-12-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 166, 81.63, '2024-06-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 167, 39.08, '2022-01-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 167, 140.81, '2022-05-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 168, 137.75, '2022-12-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 168, 53.73, '2024-05-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 169, 77.45, '2022-05-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 169, 52.62, '2022-08-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 170, 59.58, '2023-02-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 171, 9.09, '2023-04-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 171, 47.22, '2023-10-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 172, 144.93, '2022-10-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 173, 85.76, '2024-01-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 173, 93.91, '2023-09-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 174, 84.89, '2023-10-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 175, 51.5, '2022-05-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 175, 7.67, '2022-01-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 176, 51.52, '2022-01-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 176, 128.7, '2024-01-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 177, 51.76, '2024-04-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 177, 137.35, '2023-12-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 178, 25.88, '2023-11-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 179, 34.34, '2023-09-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 180, 139.44, '2024-08-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 180, 45.41, '2023-04-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 181, 130.16, '2023-08-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 182, 114.32, '2022-06-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 183, 94.9, '2023-04-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 183, 64.78, '2022-09-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 184, 89.21, '2023-03-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 185, 66.1, '2023-06-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 185, 61.59, '2022-05-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 186, 149.53, '2023-04-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 187, 100.23, '2022-03-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 187, 33.44, '2023-07-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 188, 97.81, '2023-09-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 188, 100.13, '2022-09-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 189, 45.49, '2024-02-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 189, 127.09, '2024-07-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 190, 57.28, '2023-09-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 190, 146.25, '2023-06-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 191, 20.53, '2023-06-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 191, 23.68, '2023-06-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 192, 29.5, '2024-05-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 192, 128.98, '2022-06-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 193, 74.23, '2022-12-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 193, 19.88, '2024-02-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 194, 108.45, '2024-06-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 195, 87.29, '2024-07-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 196, 117.38, '2022-10-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 196, 122.84, '2023-11-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 197, 92.82, '2022-05-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 198, 62.01, '2022-01-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 199, 122.78, '2023-10-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 199, 94.26, '2023-10-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 200, 8.2, '2022-06-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 200, 123.32, '2023-06-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 201, 90.08, '2024-07-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 201, 136.65, '2024-02-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 202, 59.92, '2022-08-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 202, 32.78, '2022-02-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 203, 70.65, '2022-01-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 203, 41.0, '2024-02-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 204, 58.72, '2024-05-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 205, 45.84, '2023-12-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 206, 109.61, '2023-04-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 207, 50.66, '2022-04-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 207, 146.09, '2024-05-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 208, 97.15, '2023-04-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 208, 79.05, '2022-11-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 209, 41.57, '2022-06-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 210, 53.73, '2022-05-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 210, 45.11, '2022-10-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 211, 126.22, '2024-03-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 211, 149.75, '2024-03-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 212, 61.83, '2022-03-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 212, 53.56, '2023-06-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 213, 149.43, '2024-03-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 213, 132.39, '2023-06-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 214, 36.69, '2024-03-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 214, 113.21, '2023-08-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 215, 101.55, '2022-03-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 215, 96.51, '2023-01-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 216, 112.77, '2023-07-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 216, 122.39, '2024-06-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 217, 106.79, '2023-06-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 217, 148.72, '2023-04-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 218, 77.66, '2023-05-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 218, 145.96, '2022-12-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 219, 131.59, '2022-08-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 220, 134.58, '2022-10-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 221, 94.25, '2023-11-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 221, 77.63, '2023-12-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 222, 37.47, '2024-02-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 222, 13.61, '2024-02-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 223, 92.59, '2022-10-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 223, 130.83, '2023-08-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 224, 133.99, '2022-10-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 224, 44.99, '2024-08-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 225, 89.67, '2024-03-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 225, 126.43, '2023-06-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 226, 129.4, '2023-07-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 227, 72.18, '2023-12-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 227, 128.26, '2024-06-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 228, 46.0, '2022-05-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 228, 56.18, '2022-07-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 229, 106.18, '2024-03-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 230, 121.08, '2023-05-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 230, 142.71, '2022-04-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 231, 13.11, '2023-09-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 231, 98.24, '2022-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 232, 99.05, '2022-06-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 233, 6.25, '2023-03-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 233, 130.81, '2024-08-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 234, 120.75, '2022-10-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 234, 59.02, '2023-11-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 235, 26.0, '2024-05-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 236, 67.74, '2022-06-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 237, 13.24, '2022-07-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 238, 121.81, '2024-03-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 238, 128.89, '2024-07-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 239, 10.66, '2022-06-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 239, 31.03, '2023-09-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 240, 63.32, '2024-04-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 240, 46.48, '2022-08-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 241, 20.35, '2023-10-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 241, 104.24, '2023-10-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 242, 74.19, '2024-08-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 242, 6.14, '2022-04-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 243, 10.81, '2023-08-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 244, 27.54, '2023-12-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 244, 75.85, '2023-01-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 245, 72.51, '2024-02-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 245, 136.22, '2024-01-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 246, 103.48, '2023-02-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 246, 11.57, '2022-01-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 247, 88.66, '2023-07-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 248, 94.84, '2024-08-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 249, 61.61, '2024-09-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 250, 52.82, '2023-09-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 250, 119.45, '2022-08-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 251, 10.47, '2024-03-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 251, 33.16, '2024-07-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 252, 146.22, '2023-04-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 253, 61.4, '2024-03-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 254, 95.15, '2023-05-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 255, 101.1, '2023-03-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 256, 14.78, '2022-02-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 256, 59.27, '2023-12-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 257, 73.93, '2022-02-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 258, 18.74, '2023-07-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 258, 83.38, '2023-03-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 259, 24.66, '2022-11-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 259, 15.71, '2022-12-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 260, 147.39, '2023-04-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 260, 126.78, '2024-01-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 261, 104.45, '2024-05-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 262, 21.64, '2023-10-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 262, 84.0, '2024-07-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 263, 72.03, '2023-02-21');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 263, 16.26, '2024-07-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 264, 49.07, '2023-09-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 265, 65.07, '2023-12-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 265, 50.32, '2022-09-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 266, 49.39, '2022-02-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 266, 117.67, '2024-09-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 267, 46.56, '2023-02-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 267, 55.72, '2023-09-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 268, 94.24, '2024-08-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 269, 145.58, '2024-05-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 270, 44.88, '2022-04-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 271, 98.05, '2022-03-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 272, 62.62, '2024-06-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 273, 21.47, '2022-01-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 274, 136.6, '2022-11-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 274, 29.03, '2023-01-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 275, 42.67, '2023-04-02');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 275, 29.97, '2023-04-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 276, 39.62, '2024-05-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 277, 62.87, '2022-04-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 278, 32.62, '2023-03-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 278, 17.04, '2023-07-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 279, 116.11, '2022-10-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 280, 18.96, '2023-06-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 280, 48.85, '2023-09-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 281, 130.96, '2022-01-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 281, 136.46, '2022-08-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 282, 147.99, '2024-06-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 283, 16.48, '2022-05-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 283, 47.88, '2022-07-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 284, 129.52, '2023-06-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 285, 11.55, '2023-10-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 286, 27.54, '2022-04-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 287, 80.78, '2023-11-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 288, 61.18, '2022-08-30');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 288, 95.69, '2022-05-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 289, 42.26, '2023-11-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 289, 23.74, '2022-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 290, 22.34, '2024-09-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 291, 90.11, '2022-02-18');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 291, 23.0, '2022-05-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 292, 43.96, '2023-06-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 292, 78.76, '2024-08-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 293, 42.9, '2022-10-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 293, 134.76, '2024-01-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 294, 32.69, '2024-08-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 294, 64.24, '2023-04-12');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 295, 146.33, '2023-07-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 295, 145.26, '2022-06-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 296, 93.65, '2022-10-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 297, 111.41, '2022-12-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 297, 20.89, '2023-07-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 298, 48.21, '2022-08-01');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 299, 144.3, '2024-05-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 300, 67.22, '2023-12-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 300, 147.42, '2022-12-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 301, 77.89, '2023-02-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 302, 8.71, '2023-11-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 303, 28.2, '2022-06-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (17, 303, 134.55, '2024-02-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 304, 64.63, '2022-03-03');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 305, 15.24, '2022-09-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 306, 50.81, '2024-08-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 306, 60.69, '2022-12-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 307, 88.68, '2022-05-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (6, 308, 107.64, '2022-05-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 308, 93.57, '2023-07-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 309, 112.87, '2023-08-31');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 309, 70.85, '2024-05-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 310, 22.62, '2023-06-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 311, 74.32, '2022-05-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 312, 136.3, '2023-01-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 313, 139.69, '2022-07-22');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 314, 19.46, '2024-07-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 314, 25.02, '2024-02-10');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 315, 106.56, '2024-06-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 315, 61.43, '2024-03-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 316, 31.54, '2024-06-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 316, 96.53, '2023-09-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 317, 61.39, '2024-08-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 317, 149.6, '2024-03-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 318, 64.92, '2024-08-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (14, 319, 7.68, '2022-07-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (19, 319, 22.41, '2022-08-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 320, 33.46, '2023-11-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 320, 45.3, '2022-06-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 321, 76.7, '2022-05-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 321, 29.22, '2023-08-28');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (4, 322, 129.93, '2022-02-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 323, 115.28, '2024-09-13');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 324, 73.47, '2024-01-20');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 325, 52.66, '2024-05-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 326, 67.2, '2023-09-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 326, 16.59, '2022-11-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 327, 15.05, '2023-11-04');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 327, 116.9, '2024-02-11');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 328, 141.86, '2022-05-17');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (7, 329, 52.67, '2024-02-27');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 329, 37.45, '2023-08-26');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (8, 330, 73.7, '2023-04-09');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 330, 98.07, '2022-10-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 331, 15.66, '2024-07-08');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 332, 132.66, '2022-06-24');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 333, 97.76, '2022-10-14');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 334, 33.2, '2022-02-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 335, 90.94, '2023-06-16');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 336, 20.33, '2024-03-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (5, 337, 30.6, '2022-09-05');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 338, 79.94, '2022-06-29');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 339, 16.68, '2022-03-25');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (13, 340, 130.29, '2023-08-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (1, 341, 94.09, '2023-11-07');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (20, 342, 105.99, '2022-12-06');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (15, 343, 129.23, '2022-10-19');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (16, 344, 106.8, '2023-06-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (10, 345, 51.81, '2022-09-15');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (11, 345, 78.19, '2023-05-23');
+INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (12, 346, 100.23, '2022-07-29');
 
 --500 fake payments
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('Apple Pay', '2023-08-30 14:39:43', 'Failed', 'TXN-AX-000021', 392.66);

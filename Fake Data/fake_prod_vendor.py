@@ -29,7 +29,7 @@ def generate_product_vendor_sql(filename, num_records=500):
                 vend_date = (start_date + timedelta(days=random_days)).strftime('%Y-%m-%d')
                 
                 sql_statement = (
-                    f"INSERT INTO Product_Vendor (vendor_id, product_id, prod_vend_price, prod_vend_date) "
+                    f"INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) "
                     f"VALUES ({v_id}, {current_product_id}, {vend_price}, '{vend_date}');\n"
                 )
                 
