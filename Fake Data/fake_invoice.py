@@ -1,12 +1,12 @@
 import random
 from datetime import datetime, timedelta
 
-def generate_invoice_sql(filename, num_records=500):
+def generate_invoice_sql(filename, num_records=480):
     # Status options for the order lifecycle
     statuses = ['Processing', 'Shipped', 'Delivered', 'Cancelled']
     
     # Assuming you have 500 customers in your Customer table
-    customer_ids = list(range(1, 501))
+    customer_ids = list(range(1, 480))
     
     with open(filename, 'w') as f:
         # payment_id starts at 21 to match your previous Payment script
@@ -31,4 +31,4 @@ def generate_invoice_sql(filename, num_records=500):
     print(f"Successfully generated {num_records} Invoice records in {filename}")
 
 if __name__ == "__main__":
-    generate_invoice_sql("insert_invoices.sql", 500)
+    generate_invoice_sql("insert_invoices.sql", 480)

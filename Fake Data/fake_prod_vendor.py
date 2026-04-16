@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timedelta
 
-def generate_product_vendor_sql(filename, num_records=500):
+def generate_product_vendor_sql(filename, num_records=480):
     # Assuming you have roughly 20 vendors in your Vendor table
     vendor_ids = list(range(1, 21))
     
@@ -38,10 +38,10 @@ def generate_product_vendor_sql(filename, num_records=500):
             
             current_product_id += 1
             # Reset product ID if we run out of products before reaching 500 vendor records
-            if current_product_id > 520:
+            if current_product_id > 480:
                 current_product_id = 21
 
     print(f"Successfully generated {num_records} Product_Vendor records in {filename}")
 
 if __name__ == "__main__":
-    generate_product_vendor_sql("insert_product_vendor.sql", 500)
+    generate_product_vendor_sql("insert_product_vendor.sql", 480)

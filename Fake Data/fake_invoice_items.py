@@ -1,8 +1,8 @@
 import random
 
-def generate_invoice_items_sql(filename, num_invoices=500):
+def generate_invoice_items_sql(filename, num_invoices=480):
     with open(filename, 'w') as f:
-        # We are looping through invoice_ids 21 to 520
+        # We are looping through invoice_ids 21 to 480
         for inv_id in range(21, 21 + num_invoices):
             
             # Randomly decide how many different products are in this invoice (1 to 3)
@@ -10,7 +10,7 @@ def generate_invoice_items_sql(filename, num_invoices=500):
             
             # Pick unique product IDs for this invoice to avoid primary key issues
             # Assuming product IDs 1-500 exist
-            product_ids = random.sample(range(1, 501), num_items)
+            product_ids = random.sample(range(1, 480), num_items)
             
             for prod_id in product_ids:
                 quantity = random.randint(1, 5)
@@ -29,4 +29,4 @@ def generate_invoice_items_sql(filename, num_invoices=500):
     print(f"Successfully generated Invoice_item records for {num_invoices} invoices in {filename}")
 
 if __name__ == "__main__":
-    generate_invoice_items_sql("insert_invoice_items.sql", 500)
+    generate_invoice_items_sql("insert_invoice_items.sql", 480)

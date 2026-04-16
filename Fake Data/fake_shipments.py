@@ -2,13 +2,13 @@ import random
 from faker import Faker
 from datetime import datetime, timedelta
 
-def generate_shipment_sql(filename, num_records=500):
+def generate_shipment_sql(filename, num_records=480):
     fake = Faker()
     carriers = ['UPS', 'FedEx', 'USPS', 'Amazon Logistics', 'DHL']
     statuses = ['Delivered', 'In Transit', 'Pending', 'Shipped']
     
     with open(filename, 'w') as f:
-        # Loop through invoice_ids 21 to 520
+        # Loop through invoice_ids 21 to 480
         for i in range(21, 21 + num_records):
             invoice_id = i
             
@@ -38,4 +38,4 @@ def generate_shipment_sql(filename, num_records=500):
     print(f"Successfully generated {num_records} Shipment records in {filename}")
 
 if __name__ == "__main__":
-    generate_shipment_sql("insert_shipments.sql", 500)
+    generate_shipment_sql("insert_shipments.sql", 480)

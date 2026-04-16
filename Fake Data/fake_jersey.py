@@ -1,6 +1,6 @@
 import random
 
-def generate_jersey_sql(filename, num_records=500):
+def generate_jersey_sql(filename, num_records=480):
     # Data pools for variety
     sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']
     types = ['Home', 'Away', 'Third', 'Retro', 'Training']
@@ -40,4 +40,4 @@ def generate_jersey_sql(filename, num_records=500):
     print(f"Successfully generated {num_records} Jersey records in {filename}")
 
 if __name__ == "__main__":
-    generate_jersey_sql("insert_jerseys.sql", 500)
+    generate_jersey_sql("insert_jerseys.sql", 480)
