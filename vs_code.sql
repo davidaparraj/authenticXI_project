@@ -6,14 +6,14 @@ CREATE TABLE League(
     league_sponsor VARCHAR(50), 
     league_tier INT NOT NULL
 );
- 
+
 CREATE TABLE Team(
     team_id INT AUTO_INCREMENT PRIMARY KEY,
     team_name VARCHAR(100) NOT NULL,
     team_country VARCHAR(100) NOT NULL,
     team_year SMALLINT,
     league_id INT NOT NULL,
-    FOREIGN KEY (league_id) REFERENCES League(league_ID)
+    FOREIGN KEY (league_id) REFERENCES League(league_id)
 );
 
 CREATE TABLE Product(
@@ -26,16 +26,16 @@ CREATE TABLE Product(
     team_id INT NOT NULL,
     FOREIGN KEY (team_id) REFERENCES Team(team_id)
 );
- 
+
 CREATE TABLE Jersey(
-    PRIMARY KEY (product_id),
+    product_id INT NOT NULL,
     jsy_size VARCHAR(10) NOT NULL,
     jsy_player_nm VARCHAR(100),
     jsy_type VARCHAR(50) NOT NULL,
-    product_id INT NOT NULL,
+    PRIMARY KEY (product_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
- 
+
 CREATE TABLE Footwear(
     product_id INT NOT NULL,
     foot_size VARCHAR(10) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE Footwear(
     PRIMARY KEY (product_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
- 
+
 CREATE TABLE Accessories(
     product_id INT NOT NULL,
     accy_type VARCHAR(50) NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE Accessories(
     PRIMARY KEY (product_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
- 
+
 CREATE TABLE Inventory(
     invent_id INT AUTO_INCREMENT PRIMARY KEY,
     invent_quantity INT NOT NULL DEFAULT 0,
@@ -62,7 +62,7 @@ CREATE TABLE Inventory(
     product_id INT NOT NULL,
     FOREIGN KEY(product_id) REFERENCES Product(product_id)
 );
- 
+
 CREATE TABLE Vendor(
     vend_id INT AUTO_INCREMENT PRIMARY KEY, 
     vend_name VARCHAR(100) NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE Vendor(
     vend_country VARCHAR(100) NOT NULL, 
     vend_address VARCHAR(250) NOT NULL
 );
- 
+
 CREATE TABLE Product_Vendor(
     prod_vend_id INT AUTO_INCREMENT PRIMARY KEY,
     prod_vend_price DECIMAL(10,2) NOT NULL,
@@ -81,15 +81,15 @@ CREATE TABLE Product_Vendor(
     FOREIGN KEY (vend_id) REFERENCES Vendor(vend_id),
     FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
- 
+
 CREATE TABLE Sales_Channel(
     channel_id INT AUTO_INCREMENT PRIMARY KEY,
     chl_name VARCHAR(100) NOT NULL,
     chl_region VARCHAR(100),
-    chl_status VARCHAR(20) NOT NULL DEFAULT 'Active',  --Default key active to keep the channel on unless specified to turn off 
+    chl_status VARCHAR(20) NOT NULL DEFAULT 'Active',  
     chl_date DATE
 );
- 
+
 CREATE TABLE Customer(
     customer_id INT AUTO_INCREMENT PRIMARY KEY,
     cust_fname VARCHAR(100) NOT NULL,
@@ -98,19 +98,16 @@ CREATE TABLE Customer(
     cust_address VARCHAR(250) NOT NULL, 
     cust_email VARCHAR(100) NOT NULL
 );
- 
 
 CREATE TABLE Payment(
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     pymt_method VARCHAR(30) NOT NULL,
     pymt_date DATETIME NOT NULL,
-    pymt_status VARCHAR(50) NOT NULL DEFAULT 'Pending',  --Payment remain pending until processed 
+    pymt_status VARCHAR(50) NOT NULL DEFAULT 'Pending',  
     pymt_trans_ref VARCHAR(100) NOT NULL,
     pymt_amt DECIMAL(10,2) NOT NULL
 );
- 
--- Why would it be channel id as a FK? Shouldn't it be payment_id? 
--- To create an invoice you need customer details and payment information. 
+
 CREATE TABLE Invoice(
     invoice_id INT AUTO_INCREMENT PRIMARY KEY,
     inv_date DATETIME,
@@ -120,7 +117,6 @@ CREATE TABLE Invoice(
     FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
     FOREIGN KEY (payment_id) REFERENCES Payment(payment_id)
 );
- 
 
 CREATE TABLE Invoice_item(
     invoice_item_id INT AUTO_INCREMENT PRIMARY KEY, 
@@ -131,7 +127,6 @@ CREATE TABLE Invoice_item(
     FOREIGN KEY(invoice_id) REFERENCES Invoice(invoice_id),
     FOREIGN KEY(product_id) REFERENCES Product(product_id)
 );
- 
 
 CREATE TABLE Shipment(
     shipment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -142,7 +137,7 @@ CREATE TABLE Shipment(
     invoice_id INT NOT NULL,
     FOREIGN KEY (invoice_id) REFERENCES Invoice(invoice_id)
 );
---6 main leagues Only put MLS IDK why 
+
 INSERT INTO League(league_name,league_country,league_year,league_sponsor,league_tier) VALUES
 ('Premier League','England',2024,'Barclays',1),
 ('La Liga','Spain',2024,'EA Sports',1),
@@ -151,7 +146,6 @@ INSERT INTO League(league_name,league_country,league_year,league_sponsor,league_
 ('Ligue 1','France',2024,'McDonald',1),
 ('MLS','USA',2024,'Apple',1);
 
---20 real world data for teams 
 INSERT INTO Team(league_id,team_name,team_country,team_year) VALUES
 (1,'Arsenal','England',1886),
 (1,'Chelsea','England',1905),
@@ -173,7 +167,6 @@ INSERT INTO Team(league_id,team_name,team_country,team_year) VALUES
 (6,'Inter Miami CF','USA',2018),
 (6,'LA Galaxy','USA',1996),
 (6,'Atlanta United FC','USA',2014);
---20 real world data for VENDORS
 
 INSERT INTO Vendor (vend_name,vend_email,vend_phone,vend_country,vend_address) VALUES
 ('Nike Inc.','orders@nike.com','+1-503-671-6453','USA','One Bowerman Drive, Beaverton, OR'),
@@ -197,7 +190,7 @@ INSERT INTO Vendor (vend_name,vend_email,vend_phone,vend_country,vend_address) V
 ('Retro Football Kits','orders@retrofootballkits.com','+44-20-7946-0404','UK','London, UK'),
 ('World Soccer Shop','service@worldsoccershop.com','+1-877-417-7625','USA','Atlanta, GA');
 
---Sales channel 
+
 INSERT INTO Sales_Channel(chl_name,chl_region,chl_status,chl_date) VALUES
 ('Authentic XI','Southeast','Active','2020-01-15'),
 ('Authentic XI','Midwest','Active','2021-06-01'),
@@ -207,7 +200,7 @@ INSERT INTO Sales_Channel(chl_name,chl_region,chl_status,chl_date) VALUES
 ('Authentic XI','Midwest','Inactive','2021-01-01'),
 ('Authentic XI','Southeast','Inactive','2023-07-04'),
 ('Authentic XI','Northwest','Active','2023-11-15');
---20 real world data for customers
+
 INSERT INTO Customer(cust_fname,cust_lname,cust_ph_num,cust_address,cust_email) VALUES
 ('James','Martinez','813-555-0101','101 Oak St, Tampa, FL 33601','james.martinez@email.com'),
 ('Sofia','Johnson','305-555-0202','220 Palm Ave, Miami, FL 33101','sofia.johnson@email.com'),
@@ -229,7 +222,8 @@ INSERT INTO Customer(cust_fname,cust_lname,cust_ph_num,cust_address,cust_email) 
 ('Harper','Clark','305-555-1818','600 Brickell Ave, Miami, FL 33131','harper.clark@email.com'),
 ('Elijah','Rodriguez','407-555-1919','400 S Orange Ave, Orlando, FL 32801','elijah.rodriguez@email.com'),
 ('Abigail','Lewis','954-555-2020','1 E Broward Blvd, Fort Lauderdale, FL 33301','abigail.lewis@email.com');
---20 REAL WORLD DATA FOR PRODUCT
+
+
 INSERT INTO Product(team_id,prod_name,prod_price,prod_brand,prod_season,prod_type) VALUES
 (1,'Arsenal Home Jersey 2024/25',89.99,'Adidas','2024/25','Jersey'),
 (2,'Chelsea Away Jersey 2024/25',84.99,'Nike','2024/25','Jersey'),
@@ -252,7 +246,6 @@ INSERT INTO Product(team_id,prod_name,prod_price,prod_brand,prod_season,prod_typ
 (16,'PSG Training Socks 3-Pack',18.99,'Nike','2024/25','Accessories'),
 (5,'Manchester United Mini Pennant',14.99,'Adidas','2024/25','Accessories');
 
---Values into Jersey
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (1, '3XL', 'Saka', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (2, '2XL', 'Odegard', 'Away');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (3, 'XS', 'Haaland', 'Away');
@@ -274,7 +267,6 @@ INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (18, '
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (19, 'M', 'Mbappe', 'Retro');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (20, 'XS', 'Mbappe', 'Away');
 
---Values into Footwear
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (1, '8', 'IC', 'Navy/White');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (2, '6.5', 'TF', 'Pink/White');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (3, '13', 'FG', 'Red/Black');
@@ -296,7 +288,7 @@ INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (19, '7', 'TF', 'Yellow/Blue');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (20, '10', 'IC', 'Pink/White');
 
---Values into Accessories
+
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (1, 'Key Ring', 'Official club key ring merchandise', 'S/M');
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (2, 'Cushion', 'Official club cushion merchandise', 'S/M');
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (3, 'Scarf', 'Official club scarf merchandise', 'M/L');
@@ -319,7 +311,6 @@ INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (20, 'Pin Badge', 'Official club collectible pin', 'One Size');
 
 
---20 real world data into Inventory 
 INSERT INTO Inventory(product_id,invent_quantity,invent_update_date,invent_location) VALUES
 (1,142,'2024-08-01','Warehouse A - Shelf 1'),
 (2,98,'2024-08-01','Warehouse A - Shelf 2'),
@@ -342,7 +333,6 @@ INSERT INTO Inventory(product_id,invent_quantity,invent_update_date,invent_locat
 (19,341,'2024-08-01','Warehouse D - Shelf 4'),
 (20,198,'2024-08-01','Warehouse D - Shelf 5');
 
---20 real world data into product vendor 
 INSERT INTO Product_Vendor(vend_id,product_id,prod_vend_price,prod_vend_date) VALUES
 (2,1,54.0,'2024-07-01'),
 (1,2,51.0,'2024-07-01'),
@@ -365,7 +355,6 @@ INSERT INTO Product_Vendor(vend_id,product_id,prod_vend_price,prod_vend_date) VA
 (1,19,7.5,'2024-07-01'),
 (11,20,5.0,'2024-07-01');
 
---20 real world data into payment 
 INSERT INTO Payment (pymt_method,pymt_date,pymt_status,pymt_trans_ref,pymt_amt) VALUES
 ('Credit Card','2024-01-10 10:15:00','Completed','TXN-AX-000001',179.98),
 ('PayPal','2024-01-12 14:30:00','Completed','TXN-AX-000002',89.99),
@@ -388,7 +377,6 @@ INSERT INTO Payment (pymt_method,pymt_date,pymt_status,pymt_trans_ref,pymt_amt) 
 ('Debit Card','2024-04-15 15:00:00','Completed','TXN-AX-000019',229.99),
 ('Apple Pay','2024-04-20 12:30:00','Completed','TXN-AX-000020',109.98);
 
---20 real world data into Invoice
 INSERT INTO Invoice (customer_id,payment_id,inv_date,inv_status) VALUES
 (1,1,'2024-01-10 10:14:00','Delivered'),
 (2,2,'2024-01-12 14:29:00','Delivered'),
@@ -411,7 +399,6 @@ INSERT INTO Invoice (customer_id,payment_id,inv_date,inv_status) VALUES
 (19,19,'2024-04-15 14:59:00','Processing'),
 (20,20,'2024-04-20 12:29:00','Pending');
 
---20 real world invoice_item data
 INSERT INTO Invoice_item (invoice_id,product_id,prod_quantity,prod_price_at_time) VALUES
 (1,1,2,89.99),
 (2,3,1,89.99),
@@ -434,7 +421,6 @@ INSERT INTO Invoice_item (invoice_id,product_id,prod_quantity,prod_price_at_time
 (15,17,1,19.99),
 (15,20,1,14.99);
 
---20 real world data for Shipment 
 INSERT INTO Shipment (invoice_id,ship_address,ship_date,ship_carrier,ship_delivery_status) VALUES
 (1,'101 Oak St, Tampa, FL 33601','2024-01-12','UPS','Delivered'),
 (2,'220 Palm Ave, Miami, FL 33101','2024-01-14','FedEx','Delivered'),
@@ -458,7 +444,6 @@ INSERT INTO Shipment (invoice_id,ship_address,ship_date,ship_carrier,ship_delive
 (20,'1 E Broward Blvd, Fort Lauderdale, FL 33301','2024-12-27','DHL','Pending');
 
 
---500 fake customer data 
 INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_email) VALUES ('Allison', 'Yu', '631-555-7041', '3818 Scott Circles Suite 062, Ginaside, OK 59028', 'allison.yu@hotmail.com');
 INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_email) VALUES ('Samantha', 'Obrien', '059-555-0539', '252 Mitchell Ports, North Robert, CO 80060', 'samantha.obrien@hotmail.com');
 INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_email) VALUES ('Brian', 'Dixon', '726-555-7443', '2763 Simmons Mission, Jacksonton, DE 68638', 'brian.dixon@gmail.com');
@@ -960,7 +945,6 @@ INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_em
 INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_email) VALUES ('Julie', 'Sullivan', '412-555-0484', '4804 Robert Fork Suite 709, Duncanchester, PA 73808', 'julie.sullivan@gmail.com');
 INSERT INTO Customer (cust_fname, cust_lname, cust_ph_num, cust_address, cust_email) VALUES ('Grant', 'Johnson', '630-555-7509', '678 Steven Road Apt. 127, Lake Ginaport, PW 78241', 'grant.johnson@yahoo.com');
 
---500 fake prodcuts 
 INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, prod_type) VALUES (12, 'Bayern Munich Wristband Set', 202.99, 'Adidas', '2024/25', 'Accessories');
 INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, prod_type) VALUES (19, 'Puma Copa Pure', 243.99, 'Puma', '2013/14', 'Footwear');
 INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, prod_type) VALUES (4, 'Umbro Shin Guards', 246.99, 'Umbro', '2024/25', 'Equipment');
@@ -1462,7 +1446,6 @@ INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, pr
 INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, prod_type) VALUES (20, 'Real Madrid Home Jersey 2019/20', 181.99, 'Nike', '2019/20', 'Jersey');
 INSERT INTO Product (team_id, prod_name, prod_price, prod_brand, prod_season, prod_type) VALUES (4, 'Bayern Munich Wristband Set', 11.99, 'Puma', '2021/22', 'Accessories');
 
---500 fake jerseys
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (21, 'M', 'Ronaldo', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (22, 'XL', 'Ronaldo', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (23, 'L', 'Mbappe', 'Training');
@@ -1944,7 +1927,6 @@ INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (498, 
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (499, 'M', 'Griezmann', 'Away');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (500, '2XL', 'Fernandes', 'Away');
 
---fake footwear 
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (21, '8', 'IC', 'Blue/White');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (22, '6.5', 'FG', 'Black/Black');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (23, '7.5', 'SG', 'Pink/White');
@@ -2426,7 +2408,6 @@ INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (499, '12', 'TF', 'Orange/Black');
 INSERT INTO Footwear (product_id, foot_size, foot_cleat_type, foot_color) VALUES (500, '6', 'TF', 'Yellow/Blue');
 
---fake accessories 
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (21, 'Wristband', 'Official club athletic wristband', 'Small');
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (22, 'Cushion', 'Official club cushion merchandise', 'Large');
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (23, 'Scarf', 'Official club scarf merchandise', 'Standard');
@@ -2908,7 +2889,6 @@ INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (499, 'Scarf', 'Official club scarf merchandise', '12 inch');
 INSERT INTO Accessories (product_id, accy_type, accy_descript, accy_size) VALUES (500, 'Tote Bag', 'Official club tote bag merchandise', 'Small');
 
---500 inventory
 INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_location) VALUES (21, 356, '2023-02-02', 'Warehouse D - Shelf 11');
 INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_location) VALUES (22, 36, '2024-03-14', 'Warehouse B - Shelf 5');
 INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_location) VALUES (23, 65, '2023-12-31', 'Warehouse C - Shelf 5');
@@ -3390,7 +3370,6 @@ INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_loc
 INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_location) VALUES (499, 88, '2023-12-21', 'Warehouse E - Shelf 2');
 INSERT INTO Inventory (product_id, invent_quantity,invent_update_date,invent_location) VALUES (500, 350, '2023-07-13', 'Warehouse C - Shelf 10');
 
---500 fake product vendor 
 INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (18, 21, 24.51, '2022-07-22');
 INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (2, 21, 29.03, '2024-08-11');
 INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 22, 137.75, '2023-03-10');
@@ -3872,7 +3851,6 @@ INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date
 INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (3, 338, 88.08, '2022-05-05');
 INSERT INTO Product_Vendor (vend_id, product_id, prod_vend_price, prod_vend_date) VALUES (9, 338, 55.13, '2022-03-21');
 
---500 fake payments
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('Apple Pay', '2023-08-30 14:39:43', 'Failed', 'TXN-AX-000021', 392.66);
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('PayPal', '2024-03-11 07:10:58', 'Refunded', 'TXN-AX-000022', 407.65);
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('Google Pay', '2024-06-26 10:12:58', 'Completed', 'TXN-AX-000023', 211.49);
@@ -4374,7 +4352,6 @@ INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_a
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('PayPal', '2024-08-09 22:56:30', 'Completed', 'TXN-AX-000519', 101.99);
 INSERT INTO Payment (pymt_method, pymt_date, pymt_status, pymt_trans_ref, pymt_amt) VALUES ('Apple Pay', '2023-10-30 05:06:23', 'Completed', 'TXN-AX-000520', 94.61);
 
---fake invoices
 INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (329, 21, '2024-05-22 21:55:10', 'Shipped');
 INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (340, 22, '2024-04-15 22:05:06', 'Delivered');
 INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (17, 23, '2024-10-15 13:42:14', 'Delivered');
@@ -4856,8 +4833,6 @@ INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (11, 
 INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (30, 499, '2024-02-21 13:54:54', 'Shipped');
 INSERT INTO Invoice (customer_id, payment_id, inv_date, inv_status) VALUES (3, 500, '2023-02-19 19:19:46', 'Cancelled');
 
-
---500 fake invoice items 
 INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_time) VALUES (21, 330, 3, 61.12);
 INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_time) VALUES (22, 410, 4, 140.33);
 INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_time) VALUES (23, 15, 3, 20.9);
@@ -5536,7 +5511,6 @@ INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_t
 INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_time) VALUES (499, 268, 3, 189.3);
 INSERT INTO Invoice_item (invoice_id, product_id, prod_quantity, prod_price_at_time) VALUES (500, 368, 4, 93.48);
 
---500 fake shipments
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (21, '684 Ricky Valleys, Port Jonathanfurt, AZ 26540', '2023-10-10', 'DHL', 'Delivered');
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (22, '31046 Leonard Coves, South Wendy, VT 70182', '2023-11-29', 'UPS', 'In Transit');
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (23, '9174 Greg Motorway, South Katie, DE 07757', '2023-09-23', 'Amazon Logistics', 'Delivered');
