@@ -254,8 +254,8 @@ INSERT INTO Product(team_id,prod_name,prod_price,prod_brand,prod_season,prod_typ
 
 --Values into Jersey
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (1, '3XL', 'Saka', 'Third');
-INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (2, '2XL', NULL, 'Away');
-INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (3, 'XS', NULL, 'Away');
+INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (2, '2XL', 'Odegard', 'Away');
+INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (3, 'XS', 'Haaland', 'Away');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (4, '3XL', 'Messi', 'Away');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (5, 'L', 'Rodri', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (6, 'XS', 'Modric', 'Third');
@@ -263,7 +263,7 @@ INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (7, 'M
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (8, '2XL', 'Ronaldo', 'Training');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (9, '2XL', 'Fernandes', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (10, 'S', 'De Bruyne', 'Home');
-INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (11, 'S', NULL, 'Third');
+INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (11, 'S', 'Ozil', 'Third');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (12, '3XL', 'Messi', 'Away');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (13, '3XL', 'De Bruyne', 'Training');
 INSERT INTO Jersey (product_id, jsy_size, jsy_player_nm, jsy_type) VALUES (14, 'XS', 'Lewandowski', 'Retro');
