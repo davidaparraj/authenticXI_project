@@ -6,15 +6,15 @@ def generate_product_sql(filename, num_records=500):
         "Real Madrid", "Barcelona", "Manchester United", "Man City", "Liverpool", 
         "Chelsea", "Arsenal", "PSG", "Bayern Munich", "Juventus", "LA Galaxy", "Inter Miami"
     ]
+    
     brands = ["Nike", "Adidas", "Puma", "Umbro", "New Balance", "Mizuno", "Authentic XI"]
-    types = ["Jersey", "Footwear", "Accessories", "Equipment"]
+    types = ["Jersey", "Footwear", "Accessories"]
     seasons = ["2013/14", "2016/17", "2019/20", "2021/22", "2022/23", "2023/24", "2024/25"]
     
     items = {
         "Jersey": ["Home Jersey", "Away Jersey", "Third Jersey", "Retro Jersey"],
         "Footwear": ["Phantom GX 2 FG", "Future 7 AG", "Future 7 FG", "Speedportal.1", "Copa Pure"],
-        "Accessories": ["Water Bottle", "Mini Pennant", "Club Scarf", "Key Ring", "Wristband Set", "Pin Badge Set"],
-        "Equipment": ["Training Ball", "Shin Guards", "Captain's Armband"]
+        "Accessories": ["Water Bottle", "Mini Pennant", "Club Scarf", "Key Ring", "Wristband Set", "Pin Badge Set","Training Ball", "Shin Guards", "Captain's Armband"],
     }
 
     with open(filename, 'w') as f:
