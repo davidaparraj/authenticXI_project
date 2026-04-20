@@ -5971,3 +5971,97 @@ INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_de
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (498, 'Unit 3307 Box 6672, DPO AE 51609', '2024-01-31', 'DHL', 'Delivered');
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (499, '0129 Gonzalez Mills Suite 155, Lambertmouth, MH 00728', '2023-02-12', 'UPS', 'Delivered');
 INSERT INTO Shipment (invoice_id, ship_address, ship_date, ship_carrier, ship_delivery_status) VALUES (500, 'Unit 1398 Box 1293, DPO AP 67249', NULL, 'FedEx', 'Pending');
+
+-- P6: Invoice by customer name and date of purchase
+SELECT
+    i.invoice_id,
+    CONCAT(c.cust_fname, ' ', c.cust_lname) AS customer_name,
+    i.inv_date,
+    i.inv_status,
+    p.prod_name,
+    ii.prod_quantity,
+    ii.prod_price_at_time,
+    (ii.prod_quantity * ii.prod_price_at_time) AS line_total,
+    py.pymt_method,
+    py.pymt_status,
+    py.pymt_amt AS invoice_total
+FROM Invoice i
+JOIN Customer c ON i.customer_id = c.customer_id
+JOIN Invoice_item ii ON i.invoice_id = ii.invoice_id
+JOIN Product p ON ii.product_id = p.product_id
+JOIN Payment py ON i.invoice_id = py.invoice_id
+WHERE CONCAT(c.cust_fname, ' ', c.cust_lname) = 'Sofia Johnson'
+AND DATE(i.inv_date) = '2024-01-12';
+-- P7: Current inventory of all products sold within a date range
+SELECT
+    p.product_id,
+    p.prod_name,
+    p.prod_type,
+    p.prod_brand,
+    inv.invent_quantity,
+    inv.invent_location,
+    inv.invent_update_date,
+    SUM(ii.prod_quantity) AS total_units_sold
+FROM Inventory inv
+JOIN Product p ON inv.product_id = p.product_id
+JOIN Invoice_item ii ON p.product_id = ii.product_id
+JOIN Invoice i ON ii.invoice_id = i.invoice_id
+WHERE DATE(i.inv_date) BETWEEN '2024-01-01' AND '2024-04-30'
+GROUP BY
+    p.product_id,
+    p.prod_name,
+    p.prod_type,
+    p.prod_brand,
+    inv.invent_quantity,
+    inv.invent_location,
+    inv.invent_update_date
+ORDER BY total_units_sold DESC;
+
+-- P8: Current inventory of all products matching one specific product type
+SELECT
+    p.product_id,
+    p.prod_name,
+    p.prod_brand,
+    p.prod_price,
+    p.prod_season,
+    inv.invent_quantity,
+    inv.invent_location,
+    inv.invent_update_date
+FROM Inventory inv
+JOIN Product p ON inv.product_id = p.product_id
+WHERE p.prod_type = 'Jersey'
+ORDER BY inv.invent_quantity DESC;
+
+-- P9: Stored procedure joining three tables with user-passed values
+DELIMITER $$
+CREATE PROCEDURE prc_customer_purchase_history(
+    IN p_fname VARCHAR(100),
+    IN p_lname VARCHAR(100),
+    IN p_prod_type VARCHAR(50)
+)
+BEGIN
+    SELECT
+        CONCAT(c.cust_fname, ' ', c.cust_lname) AS customer_name,
+        c.cust_email,
+        i.invoice_id,
+        i.inv_date,
+        i.inv_status,
+        p.prod_name,
+        p.prod_type,
+        p.prod_brand,
+        ii.prod_quantity,
+        ii.prod_price_at_time,
+        (ii.prod_quantity * ii.prod_price_at_time) AS line_total
+    FROM Customer c
+    JOIN Invoice i ON c.customer_id = i.customer_id
+    JOIN Invoice_item ii ON i.invoice_id = ii.invoice_id
+    JOIN Product p ON ii.product_id = p.product_id
+    WHERE c.cust_fname = p_fname
+    AND c.cust_lname = p_lname
+    AND p.prod_type = p_prod_type
+    ORDER BY i.inv_date DESC;
+END$$
+DELIMITER ;
+
+-- Example call:
+CALL prc_customer_purchase_history('Sofia', 'Johnson', 'Jersey');
