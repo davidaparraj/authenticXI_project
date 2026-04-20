@@ -1,4 +1,3 @@
--- This is were the sql dump will be
 -- MySQL dump 10.13  Distrib 8.0.45, for Linux (x86_64)
 --
 -- Host: 127.0.0.1    Database: auth_db1
@@ -457,4 +456,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-20 13:27:04
+-- Dump completed on 2026-04-20 14:12:55
