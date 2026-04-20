@@ -6009,7 +6009,7 @@ FROM Invoice i
 JOIN Customer c ON i.customer_id = c.customer_id
 JOIN Invoice_item ii ON i.invoice_id = ii.invoice_id
 JOIN Product p ON ii.product_id = p.product_id
-JOIN Payment py ON i.invoice_id = py.payment_id
+JOIN Payment py ON i.invoice_id = py.invoice_id
 WHERE CONCAT(c.cust_fname, ' ', c.cust_lname) = 'Sofia Johnson'
 AND DATE(i.inv_date) = '2024-01-12';
 -- P7: Current inventory of all products sold within a date range
